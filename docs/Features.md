@@ -19,6 +19,9 @@ P1 (Early Iteration Features):
 - Improved Matching Algorithm: Move beyond keyword matching toward semantic understanding of skills and experience, potentially using a simple vector database.
 - Basic Integrations: Connect with one or two key external systems (e.g., a popular ATS or LinkedIn via Unipile) to pull candidate data and push qualified leads.
 - Resource Suggestions: Bot suggests relevant resources (e.g., articles, salary benchmarks) based on the conversation.
+- LangGraph Recruitment Graph: Define the recruitment domain graph (nodes for requirement discovery, search, summarization, outreach suggestion) and persist it as configuration
+- Plugin Interface v1: Implement and integrate the recruitment plugin (tools, prompts, schemas) behind a clear interface and load it from configuration
+- Integration Testing: Focus on complete user workflows rather than isolated unit tests, following our testing strategy of testing core functionality and critical business flows
 
 ## 3.2.3 P2 Features: Advanced Agents, Complex Workflows, Analytics Dashboard
 
@@ -28,3 +31,5 @@ P2 (Advanced Platform Features):
 - Intelligent Model/Agent Router: Dynamically select the best AI model or agent for a task based on cost, speed, or accuracy requirements.
 - Analytics Dashboard: Provide a dashboard for recruiters and hiring managers to track key metrics (e.g., time‑to‑hire, source of hire, candidate quality).
 - Ingestion Pipeline: Enable batch upload of company leads or candidate data for research and analysis.
+- Plugin Registry & Dynamic Loading: Add a registry to manage plugins (enable/disable/version), support dynamic loading, and runtime domain selection (e.g., recruitment vs. support).
+- Multi‑Domain Graph Selection: Route to domain graphs by configuration or user/workspace context; support hot‑swapping of graphs per session.

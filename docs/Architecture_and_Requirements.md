@@ -30,25 +30,7 @@ A topic‑agnostic, extensible conversational platform for recruitment—with a 
 
 ## 3. Product Roadmap (P0 → P2)
 
-### 3.1 P0 (MVP)
-
-- Chat UI, conversational requirement discovery.
-- Simple candidate search via a basic API integration.
-- Basic profile and memory to recall recruiter preferences.
-
-### 3.2 P1 (Early Iteration)
-
-- Enhanced memory and context (company, projects, recruiter preferences).
-- Improved matching with semantic understanding (vector DB).
-- Initial integrations (e.g., ATS or LinkedIn via Unipile).
-- Resource suggestions (articles, salary benchmarks).
-
-### 3.3 P2 (Advanced Platform)
-
-- Specialized agents for distinct tasks (JD generation, response analysis).
-- Intelligent model/agent router.
-- Analytics dashboard (time‑to‑hire, source of hire, candidate quality).
-- Ingestion pipeline for batch leads/candidate data.
+For the detailed phased roadmap, see: [Feature Roadmap (P0 → P2)](./Features.md).
 
 ## 4. Non‑Functional Requirements
 
@@ -67,20 +49,35 @@ A topic‑agnostic, extensible conversational platform for recruitment—with a 
 
 ### 5.2 Backend
 
-- NestJS application providing APIs, WebSocket endpoints, and orchestration services.
-- Encapsulate integrations (search, LinkedIn, vector DB) as NestJS modules/providers.
+- NestJS application following strict three-layer architecture:
+  - **Controllers**: Thin orchestration (route handling, validation, response shaping)
+  - **Services**: Business logic only (delegate database operations to repositories)
+  - **Repositories**: All Prisma/database operations with type-safe queries
+- JWT authentication via HTTP-only cookies (primary) with header fallback support
+- ApiResponse patterns with global exception filters and interceptors
+- Encapsulate integrations (search, LinkedIn, vector DB) as NestJS modules/providers
 
 ### 5.3 LLM and Orchestration
 
 - Model access via API (e.g., Groq Llama‑3‑70B, ~8k tokens).
 - Orchestrate RAG/memory/tools via LangChain or LlamaIndex; use LangGraph/LangSmith for graph workflows and observability.
 
+#### Why LangGraph
+
+- Models iterative loops: action → observation → reasoning → refinement via stateful graphs.
+- Conditional routing: edges based on user feedback or system state.
+- Supports cycles with explicit control, avoiding brittle custom loops.
+- Improves maintainability for non‑linear workflows compared to linear chains.
+
 ### 5.4 Data and Memory
 
-- Structured data: Postgres (roles, candidates, metadata, settings).
-- Session/cache: Redis.
-- Vector DB: Milvus or Pinecone for long‑term memory and knowledge base.
-- Embeddings: Store chat turns, role descriptions, candidate profiles, relevant docs.
+- **Structured data**: PostgreSQL with Prisma ORM for type-safe database operations
+  - Repository pattern for all database access
+  - Declarative migrations with Prisma Migrate
+  - Connection pooling and query optimization
+- **Session/cache**: Redis for active sessions and frequently accessed data
+- **Vector DB**: Milvus or Pinecone for long‑term memory and knowledge base
+- **Embeddings**: Store chat turns, role descriptions, candidate profiles, relevant docs
 
 ### 5.5 RAG Flow
 
@@ -139,12 +136,16 @@ Start with a single, capable conversational agent that manages the recruiting wo
 
 ## 9. Key Technologies
 
-- LLMs: Groq Llama‑3‑70B (8k context) via API; OpenRouter as multi‑model access layer.
-- RAG Stack: Vector DB (Milvus/Pinecone), Redis, Postgres.
-- Orchestration: LangChain, LlamaIndex, LangGraph/LangSmith.
-- Integrations: Tavily (search), Unipile/LinkedIn, Email/Calendar APIs.
-- Frontend: Next.js (React) with WebSocket/HTTP connectors.
-- Backend: NestJS for APIs, WebSockets, and orchestration.
+- **Backend**: NestJS (Node.js >=20.0.0) with TypeScript strict configuration
+- **Database**: PostgreSQL with Prisma ORM for type-safe operations
+- **LLMs**: Groq Llama‑3‑70B (8k context) via API; OpenRouter as multi‑model access layer
+- **RAG Stack**: Vector DB (Milvus/Pinecone), Redis, PostgreSQL with Prisma
+- **Orchestration**: LangChain, LlamaIndex, LangGraph/LangSmith
+- **Integrations**: Tavily (search), Unipile/LinkedIn, Email/Calendar APIs
+- **Frontend**: Next.js (React) with WebSocket/HTTP connectors
+- **Authentication**: JWT via HTTP-only cookies with @HttpUser() decorator
+- **Testing**: Jest with focus on integration tests over unit tests
+- **Build Tools**: SWC for fast compilation, ESLint + Prettier for code quality
 
 ## 10. Notes
 

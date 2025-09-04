@@ -12,12 +12,49 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Recruitment Agent Platform - A topic-agnostic, extensible conversational AI platform built with NestJS, designed for recruitment workflows with the flexibility to expand into other domains.
 
-## Project setup
+## Project Setup
+
+### Prerequisites
+- Node.js >=20.0.0
+- npm >=10.0.0
+- PostgreSQL database
+
+### Installation
 
 ```bash
+# Install dependencies
 $ npm install
+
+# Copy environment variables
+$ cp .env.example .env
+
+# Generate Prisma client
+$ npm run prisma:generate
+
+# Run database migrations (when database is available)
+$ npm run prisma:migrate
+```
+
+### Environment Configuration
+
+Update the `.env` file with your configuration:
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `JWT_SECRET`: Secret key for JWT tokens
+- `REDIS_HOST/PORT`: Redis configuration for caching
+- `OPENROUTER_API_KEY`: API key for LLM access
+- `TAVILY_API_KEY`: API key for web search
+
+### Database Setup
+
+```bash
+# Create and apply migrations
+$ npm run prisma:migrate
+
+# View database in Prisma Studio
+$ npm run prisma:studio
 ```
 
 ## Compile and run the project
