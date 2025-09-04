@@ -15,6 +15,7 @@ async function main() {
     create: {
       email: 'recruiter@example.com',
       name: 'Jane Recruiter',
+      password: hashedPassword,
       preferences: {
         communicationStyle: 'professional',
         industryFocus: ['technology', 'finance'],
@@ -33,6 +34,7 @@ async function main() {
     create: {
       email: 'admin@example.com',
       name: 'Admin User',
+      password: hashedPassword,
       preferences: {
         communicationStyle: 'casual',
         industryFocus: ['technology'],

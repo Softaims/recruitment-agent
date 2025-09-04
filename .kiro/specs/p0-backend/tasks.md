@@ -12,27 +12,27 @@
   - Create initial migration and seed data for development
   - _Requirements: 7.1, 7.2, 9.2_
 
-- [ ] 3. Implement core database repositories and services
-- [ ] 3.1 Create PrismaService and repository layer
+- [x] 3. Implement core database repositories and services
+- [x] 3.1 Create PrismaService and repository layer
   - Implement PrismaService with connection management
   - Create UserRepository with all Prisma/database operations
   - Create SessionRepository for session data operations
   - _Requirements: 5.1, 5.2, 7.1_
 
-- [ ] 3.2 Build user service with business logic
+- [x] 3.2 Build user service with business logic
   - Implement UserService with business logic only (delegate DB to repository)
   - Add user profile management with preferences
   - Create user controller with thin orchestration layer
   - _Requirements: 5.1, 5.3, 5.4_
 
-- [ ] 4. Build authentication and authorization system
-- [ ] 4.1 Implement JWT authentication infrastructure
+- [-] 4. Build authentication and authorization system
+- [x] 4.1 Implement JWT authentication infrastructure
   - Create JWT authentication with HTTP-only cookies (primary) and header support (fallback)
   - Implement JwtAuthGuard supporting both cookie and header extraction
   - Add @HttpUser() decorator for extracting authenticated user
   - _Requirements: 8.1, 8.2_
 
-- [ ] 4.2 Create authentication endpoints and flows
+- [-] 4.2 Create authentication endpoints and flows
   - Build login/register controllers with thin orchestration
   - Implement AuthService with business logic for user validation
   - Add AuthRepository for authentication-related database operations

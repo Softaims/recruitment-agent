@@ -49,4 +49,10 @@ export class Assert {
       );
     }
   }
+
+  static notEmpty(value: string, message = 'Value cannot be empty'): void {
+    if (!value || value.trim().length === 0) {
+      throw CustomException.new('EMPTY_VALUE', message);
+    }
+  }
 }
