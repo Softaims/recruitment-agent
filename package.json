@@ -22,7 +22,10 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:migrate:reset": "prisma migrate reset",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "db:setup": "./scripts/setup-database.sh",
+    "db:reset": "npm run prisma:migrate:reset && npm run prisma:seed",
+    "db:validate": "ts-node scripts/validate-database.ts"
   },
   "engines": {
     "npm": ">=10.0.0",
