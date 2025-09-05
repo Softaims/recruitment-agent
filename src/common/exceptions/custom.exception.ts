@@ -15,22 +15,47 @@ export class CustomException extends HttpException {
   }
 
   static notFound(message: string, details?: any): CustomException {
-    return new CustomException('NOT_FOUND', message, HttpStatus.NOT_FOUND, details);
+    return new CustomException(
+      'NOT_FOUND',
+      message,
+      HttpStatus.NOT_FOUND,
+      details,
+    );
   }
 
   static unauthorized(message: string, details?: any): CustomException {
-    return new CustomException('UNAUTHORIZED', message, HttpStatus.UNAUTHORIZED, details);
+    return new CustomException(
+      'UNAUTHORIZED',
+      message,
+      HttpStatus.UNAUTHORIZED,
+      details,
+    );
   }
 
   static forbidden(message: string, details?: any): CustomException {
-    return new CustomException('FORBIDDEN', message, HttpStatus.FORBIDDEN, details);
+    return new CustomException(
+      'FORBIDDEN',
+      message,
+      HttpStatus.FORBIDDEN,
+      details,
+    );
   }
 
   static conflict(message: string, details?: any): CustomException {
-    return new CustomException('CONFLICT', message, HttpStatus.CONFLICT, details);
+    return new CustomException(
+      'CONFLICT',
+      message,
+      HttpStatus.CONFLICT,
+      details,
+    );
   }
 
   static internal(message: string, details?: any): CustomException {
-    return new CustomException('INTERNAL_ERROR', message, HttpStatus.INTERNAL_SERVER_ERROR, details);
+    return new CustomException(
+      'INTERNAL_ERROR',
+      message,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      details,
+    );
   }
 }

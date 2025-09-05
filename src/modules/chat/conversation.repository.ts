@@ -3,13 +3,30 @@ import { ConversationMessage, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { ConversationMessageWithSession } from './types/chat.types';
 
+export type ConversationOrder = 'asc' | 'desc';
+export interface ListMessagesOptions {
+  page?: number; // 1-based
+  pageSize?: number; // default 50, max 200
+  order?: ConversationOrder; // sort by timestamp asc/desc
+}
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 @Injectable()
 export class ConversationRepository {
   private readonly logger = new Logger(ConversationRepository.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Prisma.ConversationMessageCreateInput): Promise<ConversationMessage> {
+  async create(
+    data: Prisma.ConversationMessageCreateInput,
+  ): Promise<ConversationMessage> {
     return this.prisma.conversationMessage.create({ data });
   }
 
@@ -19,14 +36,20 @@ export class ConversationRepository {
     });
   }
 
-  async findByIdWithSession(id: string): Promise<ConversationMessageWithSession | null> {
+  async findByIdWithSession(
+    id: string,
+  ): Promise<ConversationMessageWithSession | null> {
     return this.prisma.conversationMessage.findUnique({
       where: { id },
       include: { session: true },
     });
   }
 
-  async findBySessionId(sessionId: string, limit = 50, offset = 0): Promise<ConversationMessage[]> {
+  async findBySessionId(
+    sessionId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<ConversationMessage[]> {
     return this.prisma.conversationMessage.findMany({
       where: { sessionId },
       orderBy: { timestamp: 'desc' },
@@ -35,7 +58,10 @@ export class ConversationRepository {
     });
   }
 
-  async findRecentBySessionId(sessionId: string, limit = 10): Promise<ConversationMessage[]> {
+  async findRecentBySessionId(
+    sessionId: string,
+    limit = 10,
+  ): Promise<ConversationMessage[]> {
     return this.prisma.conversationMessage.findMany({
       where: { sessionId },
       orderBy: { timestamp: 'desc' },
@@ -49,7 +75,10 @@ export class ConversationRepository {
     });
   }
 
-  async update(id: string, data: Prisma.ConversationMessageUpdateInput): Promise<ConversationMessage> {
+  async update(
+    id: string,
+    data: Prisma.ConversationMessageUpdateInput,
+  ): Promise<ConversationMessage> {
     return this.prisma.conversationMessage.update({
       where: { id },
       data,
@@ -69,7 +98,10 @@ export class ConversationRepository {
     return result.count;
   }
 
-  async findMessagesSince(sessionId: string, since: Date): Promise<ConversationMessage[]> {
+  async findMessagesSince(
+    sessionId: string,
+    since: Date,
+  ): Promise<ConversationMessage[]> {
     return this.prisma.conversationMessage.findMany({
       where: {
         sessionId,
@@ -79,7 +111,10 @@ export class ConversationRepository {
     });
   }
 
-  async getConversationHistory(sessionId: string, limit = 50): Promise<ConversationMessage[]> {
+  async getConversationHistory(
+    sessionId: string,
+    limit = 50,
+  ): Promise<ConversationMessage[]> {
     return this.prisma.conversationMessage.findMany({
       where: { sessionId },
       orderBy: { timestamp: 'asc' },
@@ -87,7 +122,38 @@ export class ConversationRepository {
     });
   }
 
-  async createBatch(messages: Prisma.ConversationMessageCreateManyInput[]): Promise<number> {
+  async listBySession(
+    sessionId: string,
+    options: ListMessagesOptions = {},
+  ): Promise<PaginatedResult<ConversationMessage>> {
+    const page = Math.max(1, options.page ?? 1);
+    const rawSize = options.pageSize ?? 50;
+    const pageSize = Math.max(1, Math.min(200, rawSize));
+    const order: ConversationOrder = options.order ?? 'asc';
+
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.conversationMessage.count({ where: { sessionId } }),
+      this.prisma.conversationMessage.findMany({
+        where: { sessionId },
+        orderBy: { timestamp: order },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      hasNext: page * pageSize < total,
+      hasPrev: page > 1,
+    };
+  }
+
+  async createBatch(
+    messages: Prisma.ConversationMessageCreateManyInput[],
+  ): Promise<number> {
     const result = await this.prisma.conversationMessage.createMany({
       data: messages,
     });

@@ -1,7 +1,9 @@
 import { IsEmail, IsString, IsOptional, MinLength } from 'class-validator';
 import { Prisma } from '@prisma/client';
 
-export class CreateUserDto implements Pick<Prisma.UserCreateInput, 'email' | 'name'> {
+export class CreateUserDto
+  implements Pick<Prisma.UserCreateInput, 'email' | 'name'>
+{
   @IsEmail({}, { message: 'Invalid email format' })
   email: string;
 

@@ -26,10 +26,12 @@ describe('Auth Debug', () => {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          load: [() => ({
-            JWT_SECRET: 'test-jwt-secret',
-            JWT_EXPIRES_IN: '7d',
-          })],
+          load: [
+            () => ({
+              JWT_SECRET: 'test-jwt-secret',
+              JWT_EXPIRES_IN: '7d',
+            }),
+          ],
         }),
         PassportModule,
         JwtModule.registerAsync({
@@ -54,10 +56,10 @@ describe('Auth Debug', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    
+
     // Apply middleware
     app.use(cookieParser());
-    
+
     jwtService = moduleFixture.get<JwtService>(JwtService);
     authRepository = moduleFixture.get<AuthRepository>(AuthRepository);
     prismaService = moduleFixture.get<PrismaService>(PrismaService);

@@ -27,7 +27,7 @@ export class ExpectResult<T> {
 
   otherwise<U>(callback: () => U): T | U {
     if (this.wasExecuted) {
-      return this.value as T;
+      return this.value;
     }
     return callback();
   }

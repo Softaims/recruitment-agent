@@ -52,7 +52,11 @@ export class SessionRepository extends BaseRepository<Session> {
     });
   }
 
-  async findWithMessages(sessionId: string): Promise<(Session & { messages: ConversationMessage[]; user: User }) | null> {
+  async findWithMessages(
+    sessionId: string,
+  ): Promise<
+    (Session & { messages: ConversationMessage[]; user: User }) | null
+  > {
     return this.prisma.session.findUnique({
       where: { id: sessionId },
       include: {
@@ -71,7 +75,10 @@ export class SessionRepository extends BaseRepository<Session> {
     });
   }
 
-  async updateStatus(id: string, status: Prisma.EnumSessionStatusFieldUpdateOperationsInput): Promise<Session> {
+  async updateStatus(
+    id: string,
+    status: Prisma.EnumSessionStatusFieldUpdateOperationsInput,
+  ): Promise<Session> {
     return this.prisma.session.update({
       where: { id },
       data: { status },

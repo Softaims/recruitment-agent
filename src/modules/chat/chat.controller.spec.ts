@@ -61,7 +61,11 @@ describe('ChatController (Integration)', () => {
         metadata: { test: true },
       };
 
-      const result = await controller.sendMessage('session-1', sendMessageDto, mockUser);
+      const result = await controller.sendMessage(
+        'session-1',
+        sendMessageDto,
+        mockUser,
+      );
 
       expect(result.success).toBe(true);
       expect(result.data.content).toBe('Hello, world!');
@@ -80,23 +84,41 @@ describe('ChatController (Integration)', () => {
     it('should retrieve messages with default pagination', async () => {
       chatService.getConversationHistory.mockResolvedValue([mockMessage]);
 
-      const result = await controller.getMessages('session-1', undefined, undefined, mockUser);
+      const result = await controller.getMessages(
+        'session-1',
+        undefined,
+        undefined,
+        mockUser,
+      );
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(1);
       expect(result.data[0].content).toBe('Hello, world!');
       expect(result.message).toBe('Messages retrieved successfully');
 
-      expect(chatService.getConversationHistory).toHaveBeenCalledWith('session-1', 50, 0);
+      expect(chatService.getConversationHistory).toHaveBeenCalledWith(
+        'session-1',
+        50,
+        0,
+      );
     });
 
     it('should retrieve messages with custom pagination', async () => {
       chatService.getConversationHistory.mockResolvedValue([mockMessage]);
 
-      const result = await controller.getMessages('session-1', 20, 10, mockUser);
+      const result = await controller.getMessages(
+        'session-1',
+        20,
+        10,
+        mockUser,
+      );
 
       expect(result.success).toBe(true);
-      expect(chatService.getConversationHistory).toHaveBeenCalledWith('session-1', 20, 10);
+      expect(chatService.getConversationHistory).toHaveBeenCalledWith(
+        'session-1',
+        20,
+        10,
+      );
     });
   });
 
@@ -104,21 +126,35 @@ describe('ChatController (Integration)', () => {
     it('should retrieve recent messages with default limit', async () => {
       chatService.getRecentMessages.mockResolvedValue([mockMessage]);
 
-      const result = await controller.getRecentMessages('session-1', undefined, mockUser);
+      const result = await controller.getRecentMessages(
+        'session-1',
+        undefined,
+        mockUser,
+      );
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(1);
       expect(result.message).toBe('Recent messages retrieved successfully');
 
-      expect(chatService.getRecentMessages).toHaveBeenCalledWith('session-1', 10);
+      expect(chatService.getRecentMessages).toHaveBeenCalledWith(
+        'session-1',
+        10,
+      );
     });
 
     it('should retrieve recent messages with custom limit', async () => {
       chatService.getRecentMessages.mockResolvedValue([mockMessage]);
 
-      const result = await controller.getRecentMessages('session-1', 5, mockUser);
+      const result = await controller.getRecentMessages(
+        'session-1',
+        5,
+        mockUser,
+      );
 
-      expect(chatService.getRecentMessages).toHaveBeenCalledWith('session-1', 5);
+      expect(chatService.getRecentMessages).toHaveBeenCalledWith(
+        'session-1',
+        5,
+      );
     });
   });
 
@@ -147,7 +183,11 @@ describe('ChatController (Integration)', () => {
         metadata: { updated: true },
       };
 
-      const result = await controller.updateMessage('message-1', updateData, mockUser);
+      const result = await controller.updateMessage(
+        'message-1',
+        updateData,
+        mockUser,
+      );
 
       expect(result.success).toBe(true);
       expect(result.data.content).toBe('Updated content');
@@ -156,7 +196,7 @@ describe('ChatController (Integration)', () => {
       expect(chatService.updateMessage).toHaveBeenCalledWith(
         'message-1',
         'Updated content',
-        { updated: true }
+        { updated: true },
       );
     });
   });

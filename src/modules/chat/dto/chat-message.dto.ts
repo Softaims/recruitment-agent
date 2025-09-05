@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsOptional, IsObject, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsObject,
+  IsEnum,
+} from 'class-validator';
 import { MessageRole } from '@prisma/client';
 
 export class ChatMessageDto {

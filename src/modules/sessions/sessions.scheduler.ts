@@ -12,9 +12,9 @@ export class SessionsScheduler {
   async handleExpiredSessionsCleanup(): Promise<void> {
     try {
       this.logger.log('Starting expired sessions cleanup...');
-      
+
       const expiredCount = await this.sessionsService.cleanupExpiredSessions();
-      
+
       if (expiredCount > 0) {
         this.logger.log(`Cleaned up ${expiredCount} expired sessions`);
       }
@@ -27,9 +27,10 @@ export class SessionsScheduler {
   async handleOldSessionsDeletion(): Promise<void> {
     try {
       this.logger.log('Starting old expired sessions deletion...');
-      
-      const deletedCount = await this.sessionsService.deleteOldExpiredSessions(30);
-      
+
+      const deletedCount =
+        await this.sessionsService.deleteOldExpiredSessions(30);
+
       if (deletedCount > 0) {
         this.logger.log(`Deleted ${deletedCount} old expired sessions`);
       }

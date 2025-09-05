@@ -19,7 +19,12 @@ export class ApiResponse<T = any> {
     details?: any;
   };
 
-  constructor(success: boolean, data: T, message: string, error?: { code: string; details?: any }) {
+  constructor(
+    success: boolean,
+    data: T,
+    message: string,
+    error?: { code: string; details?: any },
+  ) {
     this.success = success;
     this.data = data;
     this.message = message;
@@ -31,7 +36,11 @@ export class ApiResponse<T = any> {
     return new ApiResponse(true, data, message);
   }
 
-  static error(code: string, message: string, details?: any): ApiResponse<null> {
+  static error(
+    code: string,
+    message: string,
+    details?: any,
+  ): ApiResponse<null> {
     return new ApiResponse(false, null, message, { code, details });
   }
 }

@@ -7,16 +7,9 @@ import { SessionRepository } from '../../database/repositories/session.repositor
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    ScheduleModule.forRoot(),
-  ],
+  imports: [DatabaseModule, ScheduleModule.forRoot()],
   controllers: [SessionsController],
-  providers: [
-    SessionsService,
-    SessionsScheduler,
-    SessionRepository,
-  ],
+  providers: [SessionsService, SessionsScheduler, SessionRepository],
   exports: [SessionsService],
 })
 export class SessionsModule {}

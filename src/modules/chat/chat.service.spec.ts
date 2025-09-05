@@ -94,7 +94,9 @@ describe('ChatService (Business Logic)', () => {
 
       expect(result).toEqual(mockMessage);
       expect(sessionsService.getSession).toHaveBeenCalledWith('session-1');
-      expect(sessionsService.updateSessionActivity).toHaveBeenCalledWith('session-1');
+      expect(sessionsService.updateSessionActivity).toHaveBeenCalledWith(
+        'session-1',
+      );
       expect(conversationRepository.create).toHaveBeenCalledWith({
         session: { connect: { id: 'session-1' } },
         content: 'Hello, world!',
@@ -112,7 +114,9 @@ describe('ChatService (Business Logic)', () => {
         role: MessageRole.USER,
       };
 
-      await expect(service.processMessage(payload)).rejects.toThrow('Session not found or expired');
+      await expect(service.processMessage(payload)).rejects.toThrow(
+        'Session not found or expired',
+      );
       expect(conversationRepository.create).not.toHaveBeenCalled();
     });
 
@@ -123,7 +127,9 @@ describe('ChatService (Business Logic)', () => {
         role: MessageRole.USER,
       };
 
-      await expect(service.processMessage(payload)).rejects.toThrow('Session ID is required');
+      await expect(service.processMessage(payload)).rejects.toThrow(
+        'Session ID is required',
+      );
     });
 
     it('should throw error for missing content', async () => {
@@ -133,7 +139,9 @@ describe('ChatService (Business Logic)', () => {
         role: MessageRole.USER,
       };
 
-      await expect(service.processMessage(payload)).rejects.toThrow('Message content is required');
+      await expect(service.processMessage(payload)).rejects.toThrow(
+        'Message content is required',
+      );
     });
   });
 
@@ -152,17 +160,22 @@ describe('ChatService (Business Logic)', () => {
       const result = await service.createMessage('session-1', createDto);
 
       expect(result).toEqual(mockMessage);
-      expect(sessionsService.updateSessionActivity).toHaveBeenCalledWith('session-1');
+      expect(sessionsService.updateSessionActivity).toHaveBeenCalledWith(
+        'session-1',
+      );
     });
 
     it('should create system messages', async () => {
       sessionsService.getSession.mockResolvedValue(mockSession);
       sessionsService.updateSessionActivity.mockResolvedValue(mockSession);
-      
+
       const systemMessage = { ...mockMessage, role: MessageRole.SYSTEM };
       conversationRepository.create.mockResolvedValue(systemMessage);
 
-      const result = await service.createSystemMessage('session-1', 'System message');
+      const result = await service.createSystemMessage(
+        'session-1',
+        'System message',
+      );
 
       expect(result.role).toBe(MessageRole.SYSTEM);
       expect(conversationRepository.create).toHaveBeenCalledWith({
@@ -176,11 +189,14 @@ describe('ChatService (Business Logic)', () => {
     it('should create assistant messages', async () => {
       sessionsService.getSession.mockResolvedValue(mockSession);
       sessionsService.updateSessionActivity.mockResolvedValue(mockSession);
-      
+
       const assistantMessage = { ...mockMessage, role: MessageRole.ASSISTANT };
       conversationRepository.create.mockResolvedValue(assistantMessage);
 
-      const result = await service.createAssistantMessage('session-1', 'Assistant response');
+      const result = await service.createAssistantMessage(
+        'session-1',
+        'Assistant response',
+      );
 
       expect(result.role).toBe(MessageRole.ASSISTANT);
       expect(conversationRepository.create).toHaveBeenCalledWith({
@@ -200,36 +216,51 @@ describe('ChatService (Business Logic)', () => {
       const result = await service.getConversationHistory('session-1', 50, 0);
 
       expect(result).toEqual([mockMessage]);
-      expect(conversationRepository.findBySessionId).toHaveBeenCalledWith('session-1', 50, 0);
+      expect(conversationRepository.findBySessionId).toHaveBeenCalledWith(
+        'session-1',
+        50,
+        0,
+      );
     });
 
     it('should throw error for invalid session', async () => {
       sessionsService.getSession.mockResolvedValue(null);
 
-      await expect(service.getConversationHistory('invalid-session')).rejects.toThrow('Session not found or expired');
+      await expect(
+        service.getConversationHistory('invalid-session'),
+      ).rejects.toThrow('Session not found or expired');
     });
   });
 
   describe('getRecentMessages', () => {
     it('should retrieve recent messages', async () => {
       sessionsService.getSession.mockResolvedValue(mockSession);
-      conversationRepository.findRecentBySessionId.mockResolvedValue([mockMessage]);
+      conversationRepository.findRecentBySessionId.mockResolvedValue([
+        mockMessage,
+      ]);
 
       const result = await service.getRecentMessages('session-1', 10);
 
       expect(result).toEqual([mockMessage]);
-      expect(conversationRepository.findRecentBySessionId).toHaveBeenCalledWith('session-1', 10);
+      expect(conversationRepository.findRecentBySessionId).toHaveBeenCalledWith(
+        'session-1',
+        10,
+      );
     });
   });
 
   describe('updateMessage', () => {
     it('should update existing messages', async () => {
       conversationRepository.findById.mockResolvedValue(mockMessage);
-      
+
       const updatedMessage = { ...mockMessage, content: 'Updated content' };
       conversationRepository.update.mockResolvedValue(updatedMessage);
 
-      const result = await service.updateMessage('message-1', 'Updated content', { updated: true });
+      const result = await service.updateMessage(
+        'message-1',
+        'Updated content',
+        { updated: true },
+      );
 
       expect(result.content).toBe('Updated content');
       expect(conversationRepository.update).toHaveBeenCalledWith('message-1', {
@@ -241,7 +272,9 @@ describe('ChatService (Business Logic)', () => {
     it('should throw error for non-existent message', async () => {
       conversationRepository.findById.mockResolvedValue(null);
 
-      await expect(service.updateMessage('invalid-message', 'content')).rejects.toThrow('Message not found');
+      await expect(
+        service.updateMessage('invalid-message', 'content'),
+      ).rejects.toThrow('Message not found');
     });
   });
 
@@ -258,7 +291,9 @@ describe('ChatService (Business Logic)', () => {
     it('should throw error for non-existent message', async () => {
       conversationRepository.findById.mockResolvedValue(null);
 
-      await expect(service.deleteMessage('invalid-message')).rejects.toThrow('Message not found');
+      await expect(service.deleteMessage('invalid-message')).rejects.toThrow(
+        'Message not found',
+      );
     });
   });
 
@@ -270,13 +305,17 @@ describe('ChatService (Business Logic)', () => {
       const result = await service.clearConversation('session-1');
 
       expect(result).toBe(5);
-      expect(conversationRepository.deleteBySessionId).toHaveBeenCalledWith('session-1');
+      expect(conversationRepository.deleteBySessionId).toHaveBeenCalledWith(
+        'session-1',
+      );
     });
 
     it('should throw error for invalid session', async () => {
       sessionsService.getSession.mockResolvedValue(null);
 
-      await expect(service.clearConversation('invalid-session')).rejects.toThrow('Session not found or expired');
+      await expect(
+        service.clearConversation('invalid-session'),
+      ).rejects.toThrow('Session not found or expired');
     });
   });
 
@@ -287,7 +326,9 @@ describe('ChatService (Business Logic)', () => {
       const result = await service.getMessageCount('session-1');
 
       expect(result).toBe(10);
-      expect(conversationRepository.countBySessionId).toHaveBeenCalledWith('session-1');
+      expect(conversationRepository.countBySessionId).toHaveBeenCalledWith(
+        'session-1',
+      );
     });
   });
 
@@ -299,7 +340,10 @@ describe('ChatService (Business Logic)', () => {
       const result = await service.getMessagesSince('session-1', since);
 
       expect(result).toEqual([mockMessage]);
-      expect(conversationRepository.findMessagesSince).toHaveBeenCalledWith('session-1', since);
+      expect(conversationRepository.findMessagesSince).toHaveBeenCalledWith(
+        'session-1',
+        since,
+      );
     });
   });
 });

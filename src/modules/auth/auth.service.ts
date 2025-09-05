@@ -30,7 +30,10 @@ export class AuthService {
       throw CustomException.new('INVALID_CREDENTIALS', 'Invalid credentials');
     }
 
-    const isValidPassword = await bcrypt.compare(loginDto.password, user.password);
+    const isValidPassword = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isValidPassword) {
       throw CustomException.new('INVALID_CREDENTIALS', 'Invalid credentials');
     }
@@ -49,12 +52,21 @@ export class AuthService {
 
   async registerUser(registerDto: RegisterDto): Promise<AuthResult> {
     Assert.isEmail(registerDto.email, 'Invalid email format');
-    Assert.minLength(registerDto.password, 8, 'Password must be at least 8 characters');
+    Assert.minLength(
+      registerDto.password,
+      8,
+      'Password must be at least 8 characters',
+    );
     Assert.notEmpty(registerDto.name, 'Name is required');
 
-    const existingUser = await this.authRepository.findUserByEmail(registerDto.email);
+    const existingUser = await this.authRepository.findUserByEmail(
+      registerDto.email,
+    );
     if (existingUser) {
-      throw CustomException.new('USER_EXISTS', 'User already exists with this email');
+      throw CustomException.new(
+        'USER_EXISTS',
+        'User already exists with this email',
+      );
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
@@ -75,7 +87,9 @@ export class AuthService {
     };
   }
 
-  async validateUserById(userId: string): Promise<Omit<User, 'password'> | null> {
+  async validateUserById(
+    userId: string,
+  ): Promise<Omit<User, 'password'> | null> {
     const user = await this.authRepository.findUserById(userId);
     if (!user) {
       return null;

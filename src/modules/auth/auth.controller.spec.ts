@@ -28,10 +28,12 @@ describe('AuthController (Integration)', () => {
       imports: [
         ConfigModule.forRoot({
           isGlobal: true,
-          load: [() => ({
-            JWT_SECRET: 'test-jwt-secret',
-            JWT_EXPIRES_IN: '7d',
-          })],
+          load: [
+            () => ({
+              JWT_SECRET: 'test-jwt-secret',
+              JWT_EXPIRES_IN: '7d',
+            }),
+          ],
         }),
         PassportModule,
         JwtModule.registerAsync({
@@ -64,17 +66,19 @@ describe('AuthController (Integration)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    
+
     // Apply middleware
     app.use(cookieParser());
-    
+
     // Apply global pipes and filters
-    app.useGlobalPipes(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }));
-    
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+
     authRepository = moduleFixture.get<AuthRepository>(AuthRepository);
     prismaService = moduleFixture.get<PrismaService>(PrismaService);
 
@@ -121,7 +125,9 @@ describe('AuthController (Integration)', () => {
       // Check JWT cookie is set
       const cookies = response.headers['set-cookie'];
       expect(cookies).toBeDefined();
-      expect(cookies[0]).toMatch(/jwt=.+; Max-Age=604800; Path=\/; .+HttpOnly.+SameSite=Strict/);
+      expect(cookies[0]).toMatch(
+        /jwt=.+; Max-Age=604800; Path=\/; .+HttpOnly.+SameSite=Strict/,
+      );
     });
 
     it('should fail with invalid email', async () => {
@@ -186,10 +192,14 @@ describe('AuthController (Integration)', () => {
       // Check JWT cookie is set
       const cookies = response.headers['set-cookie'];
       expect(cookies).toBeDefined();
-      expect(cookies[0]).toMatch(/jwt=.+; Max-Age=604800; Path=\/; .+HttpOnly.+SameSite=Strict/);
+      expect(cookies[0]).toMatch(
+        /jwt=.+; Max-Age=604800; Path=\/; .+HttpOnly.+SameSite=Strict/,
+      );
 
       // Verify user was created in database
-      const createdUser = await authRepository.findUserByEmail('newuser@example.com');
+      const createdUser = await authRepository.findUserByEmail(
+        'newuser@example.com',
+      );
       expect(createdUser).toBeDefined();
       expect(createdUser.name).toBe('New User');
     });
@@ -205,7 +215,9 @@ describe('AuthController (Integration)', () => {
         .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toBe('User already exists with this email');
+      expect(response.body.error.message).toBe(
+        'User already exists with this email',
+      );
     });
 
     it('should fail with short password', async () => {
@@ -257,7 +269,9 @@ describe('AuthController (Integration)', () => {
       expect(profileResponse.body.success).toBe(true);
       expect(profileResponse.body.data.email).toBe('test@example.com');
       expect(profileResponse.body.data.password).toBeUndefined();
-      expect(profileResponse.body.message).toBe('Profile retrieved successfully');
+      expect(profileResponse.body.message).toBe(
+        'Profile retrieved successfully',
+      );
     });
 
     it('should get user profile with valid JWT header', async () => {

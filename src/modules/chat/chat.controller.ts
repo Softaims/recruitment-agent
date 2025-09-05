@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import type { ConversationMessage, User } from '@prisma/client';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -24,8 +35,11 @@ export class ChatController {
       metadata: sendMessageDto.metadata,
     };
 
-    const message = await this.chatService.createMessage(sessionId, createMessageDto);
-    
+    const message = await this.chatService.createMessage(
+      sessionId,
+      createMessageDto,
+    );
+
     const response: MessageResponseDto = {
       id: message.id,
       sessionId: message.sessionId,
@@ -45,9 +59,13 @@ export class ChatController {
     @Query('offset', new ParseIntPipe({ optional: true })) offset = 0,
     @HttpUser() user: User,
   ): Promise<ApiResponse<MessageResponseDto[]>> {
-    const messages = await this.chatService.getConversationHistory(sessionId, limit, offset);
-    
-    const response: MessageResponseDto[] = messages.map(message => ({
+    const messages = await this.chatService.getConversationHistory(
+      sessionId,
+      limit,
+      offset,
+    );
+
+    const response: MessageResponseDto[] = messages.map((message) => ({
       id: message.id,
       sessionId: message.sessionId,
       role: message.role,
@@ -66,8 +84,8 @@ export class ChatController {
     @HttpUser() user: User,
   ): Promise<ApiResponse<MessageResponseDto[]>> {
     const messages = await this.chatService.getRecentMessages(sessionId, limit);
-    
-    const response: MessageResponseDto[] = messages.map(message => ({
+
+    const response: MessageResponseDto[] = messages.map((message) => ({
       id: message.id,
       sessionId: message.sessionId,
       role: message.role,
@@ -76,7 +94,10 @@ export class ChatController {
       timestamp: message.timestamp,
     }));
 
-    return ApiResponse.success(response, 'Recent messages retrieved successfully');
+    return ApiResponse.success(
+      response,
+      'Recent messages retrieved successfully',
+    );
   }
 
   @Get('messages/:messageId')
@@ -85,7 +106,7 @@ export class ChatController {
     @HttpUser() user: User,
   ): Promise<ApiResponse<MessageResponseDto>> {
     const message = await this.chatService.getMessage(messageId);
-    
+
     const response: MessageResponseDto = {
       id: message.id,
       sessionId: message.sessionId,
@@ -109,7 +130,7 @@ export class ChatController {
       updateData.content,
       updateData.metadata,
     );
-    
+
     const response: MessageResponseDto = {
       id: message.id,
       sessionId: message.sessionId,
@@ -137,7 +158,10 @@ export class ChatController {
     @HttpUser() user: User,
   ): Promise<ApiResponse<{ count: number }>> {
     const count = await this.chatService.getMessageCount(sessionId);
-    return ApiResponse.success({ count }, 'Message count retrieved successfully');
+    return ApiResponse.success(
+      { count },
+      'Message count retrieved successfully',
+    );
   }
 
   @Delete('sessions/:sessionId/messages')
@@ -146,6 +170,9 @@ export class ChatController {
     @HttpUser() user: User,
   ): Promise<ApiResponse<{ deletedCount: number }>> {
     const deletedCount = await this.chatService.clearConversation(sessionId);
-    return ApiResponse.success({ deletedCount }, 'Conversation cleared successfully');
+    return ApiResponse.success(
+      { deletedCount },
+      'Conversation cleared successfully',
+    );
   }
 }

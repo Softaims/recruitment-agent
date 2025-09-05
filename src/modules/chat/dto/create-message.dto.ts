@@ -1,7 +1,16 @@
-import { IsString, IsNotEmpty, IsOptional, IsObject, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsObject,
+  IsEnum,
+} from 'class-validator';
 import { MessageRole, Prisma } from '@prisma/client';
 
-export class CreateMessageDto implements Pick<Prisma.ConversationMessageCreateInput, 'content' | 'role' | 'metadata'> {
+export class CreateMessageDto
+  implements
+    Pick<Prisma.ConversationMessageCreateInput, 'content' | 'role' | 'metadata'>
+{
   @IsString()
   @IsNotEmpty()
   content: string;

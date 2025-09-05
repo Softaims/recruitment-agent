@@ -15,7 +15,7 @@ import { DatabaseModule } from '../../database/database.module';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: configService.get<string>('JWT_EXPIRES_IN', '7d'),
@@ -26,6 +26,6 @@ import { DatabaseModule } from '../../database/database.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthRepository, JwtStrategy, JwtAuthGuard],
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, JwtModule],
 })
 export class AuthModule {}

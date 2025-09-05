@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConversationMessage, MessageRole, Prisma } from '@prisma/client';
 import { ConversationRepository } from './conversation.repository';
 import { SessionsService } from '../sessions/sessions.service';
@@ -36,12 +36,17 @@ export class ChatService {
     };
 
     const message = await this.conversationRepository.create(messageData);
-    
-    this.logger.log(`Created message ${message.id} in session ${payload.sessionId}`);
+
+    this.logger.log(
+      `Created message ${message.id} in session ${payload.sessionId}`,
+    );
     return message;
   }
 
-  async createMessage(sessionId: string, data: CreateMessageDto): Promise<ConversationMessage> {
+  async createMessage(
+    sessionId: string,
+    data: CreateMessageDto,
+  ): Promise<ConversationMessage> {
     Assert.notNull(sessionId, 'Session ID is required');
     Assert.notNull(data.content, 'Message content is required');
 
@@ -57,25 +62,36 @@ export class ChatService {
     };
 
     const message = await this.conversationRepository.create(messageData);
-    
+
     // Update session activity
     await this.sessionsService.updateSessionActivity(sessionId);
-    
+
     this.logger.log(`Created message ${message.id} in session ${sessionId}`);
     return message;
   }
 
-  async getConversationHistory(sessionId: string, limit = 50, offset = 0): Promise<ConversationMessage[]> {
+  async getConversationHistory(
+    sessionId: string,
+    limit = 50,
+    offset = 0,
+  ): Promise<ConversationMessage[]> {
     Assert.notNull(sessionId, 'Session ID is required');
 
     // Validate session exists
     const session = await this.sessionsService.getSession(sessionId);
     Assert.notNull(session, 'Session not found or expired');
 
-    return this.conversationRepository.findBySessionId(sessionId, limit, offset);
+    return this.conversationRepository.findBySessionId(
+      sessionId,
+      limit,
+      offset,
+    );
   }
 
-  async getRecentMessages(sessionId: string, limit = 10): Promise<ConversationMessage[]> {
+  async getRecentMessages(
+    sessionId: string,
+    limit = 10,
+  ): Promise<ConversationMessage[]> {
     Assert.notNull(sessionId, 'Session ID is required');
 
     // Validate session exists
@@ -94,11 +110,16 @@ export class ChatService {
     return message;
   }
 
-  async updateMessage(messageId: string, content: string, metadata?: Record<string, any>): Promise<ConversationMessage> {
+  async updateMessage(
+    messageId: string,
+    content: string,
+    metadata?: Record<string, any>,
+  ): Promise<ConversationMessage> {
     Assert.notNull(messageId, 'Message ID is required');
     Assert.notNull(content, 'Message content is required');
 
-    const existingMessage = await this.conversationRepository.findById(messageId);
+    const existingMessage =
+      await this.conversationRepository.findById(messageId);
     Assert.notNull(existingMessage, 'Message not found');
 
     const updateData: Prisma.ConversationMessageUpdateInput = {
@@ -109,8 +130,11 @@ export class ChatService {
       updateData.metadata = metadata;
     }
 
-    const updatedMessage = await this.conversationRepository.update(messageId, updateData);
-    
+    const updatedMessage = await this.conversationRepository.update(
+      messageId,
+      updateData,
+    );
+
     this.logger.log(`Updated message ${messageId}`);
     return updatedMessage;
   }
@@ -118,11 +142,12 @@ export class ChatService {
   async deleteMessage(messageId: string): Promise<void> {
     Assert.notNull(messageId, 'Message ID is required');
 
-    const existingMessage = await this.conversationRepository.findById(messageId);
+    const existingMessage =
+      await this.conversationRepository.findById(messageId);
     Assert.notNull(existingMessage, 'Message not found');
 
     await this.conversationRepository.delete(messageId);
-    
+
     this.logger.log(`Deleted message ${messageId}`);
   }
 
@@ -139,13 +164,20 @@ export class ChatService {
     const session = await this.sessionsService.getSession(sessionId);
     Assert.notNull(session, 'Session not found or expired');
 
-    const deletedCount = await this.conversationRepository.deleteBySessionId(sessionId);
-    
-    this.logger.log(`Cleared ${deletedCount} messages from session ${sessionId}`);
+    const deletedCount =
+      await this.conversationRepository.deleteBySessionId(sessionId);
+
+    this.logger.log(
+      `Cleared ${deletedCount} messages from session ${sessionId}`,
+    );
     return deletedCount;
   }
 
-  async createSystemMessage(sessionId: string, content: string, metadata?: Record<string, any>): Promise<ConversationMessage> {
+  async createSystemMessage(
+    sessionId: string,
+    content: string,
+    metadata?: Record<string, any>,
+  ): Promise<ConversationMessage> {
     return this.createMessage(sessionId, {
       content,
       role: MessageRole.SYSTEM,
@@ -153,7 +185,11 @@ export class ChatService {
     });
   }
 
-  async createAssistantMessage(sessionId: string, content: string, metadata?: Record<string, any>): Promise<ConversationMessage> {
+  async createAssistantMessage(
+    sessionId: string,
+    content: string,
+    metadata?: Record<string, any>,
+  ): Promise<ConversationMessage> {
     return this.createMessage(sessionId, {
       content,
       role: MessageRole.ASSISTANT,
@@ -161,7 +197,10 @@ export class ChatService {
     });
   }
 
-  async getMessagesSince(sessionId: string, since: Date): Promise<ConversationMessage[]> {
+  async getMessagesSince(
+    sessionId: string,
+    since: Date,
+  ): Promise<ConversationMessage[]> {
     Assert.notNull(sessionId, 'Session ID is required');
     Assert.notNull(since, 'Since date is required');
 

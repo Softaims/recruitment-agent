@@ -1,11 +1,23 @@
-import { Controller, Post, Get, Body, Res, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Res,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import type { User } from '@prisma/client';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { HttpUser } from './decorators/http-user.decorator';
 import { LoginDto, RegisterDto } from './dto';
-import { ApiResponse, ApiResponseInterface } from '../../common/responses/api-response';
+import {
+  ApiResponse,
+  ApiResponseInterface,
+} from '../../common/responses/api-response';
 
 @Controller('auth')
 export class AuthController {
@@ -51,7 +63,9 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  async getProfile(@HttpUser() user: User): Promise<ApiResponseInterface<Omit<User, 'password'>>> {
+  async getProfile(
+    @HttpUser() user: User,
+  ): Promise<ApiResponseInterface<Omit<User, 'password'>>> {
     const profile = await this.authService.getUserProfile(user.id);
     return ApiResponse.success(profile, 'Profile retrieved successfully');
   }
@@ -59,7 +73,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Res({ passthrough: true }) response: Response): Promise<ApiResponseInterface<null>> {
+  async logout(
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<ApiResponseInterface<null>> {
     // Clear the JWT cookie
     response.clearCookie('jwt', {
       httpOnly: true,

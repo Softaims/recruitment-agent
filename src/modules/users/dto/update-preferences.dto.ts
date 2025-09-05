@@ -2,7 +2,9 @@ import { IsOptional, IsString, IsArray, IsIn } from 'class-validator';
 
 export class UpdatePreferencesDto {
   @IsOptional()
-  @IsIn(['formal', 'casual', 'technical'], { message: 'Communication style must be formal, casual, or technical' })
+  @IsIn(['formal', 'casual', 'technical'], {
+    message: 'Communication style must be formal, casual, or technical',
+  })
   communicationStyle?: 'formal' | 'casual' | 'technical';
 
   @IsOptional()

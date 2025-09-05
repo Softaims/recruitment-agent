@@ -294,14 +294,14 @@ describe('ChatGateway (Integration)', () => {
         expect(data.data.content).toBe('Hello, world!');
         expect(data.data.role).toBe(MessageRole.USER);
         expect(data.data.sessionId).toBe('session-1');
-        
+
         expect(chatService.processMessage).toHaveBeenCalledWith({
           sessionId: 'session-1',
           content: 'Hello, world!',
           role: MessageRole.USER,
           metadata: { test: true },
         });
-        
+
         done();
       });
     });
@@ -351,7 +351,7 @@ describe('ChatGateway (Integration)', () => {
       clientSocket.on('session_joined', () => {
         sessionJoined = true;
         clientSocket.emit('typing', { isTyping: true });
-        
+
         // Since we only have one client, we won't receive the typing indicator
         // In a real scenario with multiple clients, other clients would receive it
         setTimeout(() => {

@@ -21,7 +21,7 @@ export class AppController {
     try {
       // Test database connection
       await this.prismaService.$queryRaw`SELECT 1`;
-      
+
       return {
         status: 'healthy',
         timestamp: new Date().toISOString(),

@@ -1,19 +1,31 @@
 import { CustomException } from '../exceptions/custom.exception';
 
 export class Assert {
-  static isTrue(condition: boolean, message: string, code = 'ASSERTION_FAILED'): void {
+  static isTrue(
+    condition: boolean,
+    message: string,
+    code = 'ASSERTION_FAILED',
+  ): void {
     if (!condition) {
       throw CustomException.new(code, message);
     }
   }
 
-  static isFalse(condition: boolean, message: string, code = 'ASSERTION_FAILED'): void {
+  static isFalse(
+    condition: boolean,
+    message: string,
+    code = 'ASSERTION_FAILED',
+  ): void {
     if (condition) {
       throw CustomException.new(code, message);
     }
   }
 
-  static notNull<T>(value: T | null | undefined, message: string, code = 'NOT_FOUND'): asserts value is T {
+  static notNull<T>(
+    value: T | null | undefined,
+    message: string,
+    code = 'NOT_FOUND',
+  ): asserts value is T {
     if (value === null || value === undefined) {
       throw CustomException.notFound(message);
     }

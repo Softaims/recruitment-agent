@@ -101,7 +101,7 @@ describe('Chat Module Integration', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body.data.length).toBe(1);
-      
+
       const message = response.body.data[0];
       expect(message.id).toBe(messageId);
       expect(message.content).toBe('Hello from integration test!');
@@ -126,10 +126,12 @@ describe('Chat Module Integration', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body.data.length).toBe(2);
-      
+
       // Recent messages should be in reverse chronological order
       expect(response.body.data[0].content).toBe('Second message');
-      expect(response.body.data[1].content).toBe('Hello from integration test!');
+      expect(response.body.data[1].content).toBe(
+        'Hello from integration test!',
+      );
     });
 
     it('should get message count', async () => {
@@ -160,7 +162,11 @@ describe('Chat Module Integration', () => {
         .set('Cookie', `jwt=${authToken}`)
         .send({
           content: 'Updated message content',
-          metadata: { source: 'integration-test', edited: true, priority: 'medium' },
+          metadata: {
+            source: 'integration-test',
+            edited: true,
+            priority: 'medium',
+          },
         })
         .expect(200);
 
@@ -315,12 +321,12 @@ describe('Chat Module Integration', () => {
         user_context: {
           location: 'office',
           device: 'desktop',
-          session_duration: 1800
+          session_duration: 1800,
         },
         attachments: [
           { type: 'image', url: 'https://example.com/image.jpg' },
-          { type: 'document', url: 'https://example.com/doc.pdf' }
-        ]
+          { type: 'document', url: 'https://example.com/doc.pdf' },
+        ],
       };
 
       const response = await request(app.getHttpServer())

@@ -52,7 +52,7 @@ describe('AppController', () => {
   describe('getHealth', () => {
     it('should return healthy status when database is connected', async () => {
       const result = await appController.getHealth();
-      
+
       expect(result.status).toBe('healthy');
       expect(result.environment).toBe('test');
       expect(result.services.database).toBe('connected');
@@ -60,10 +60,12 @@ describe('AppController', () => {
     });
 
     it('should return unhealthy status when database connection fails', async () => {
-      jest.spyOn(prismaService, '$queryRaw').mockRejectedValueOnce(new Error('Connection failed'));
-      
+      jest
+        .spyOn(prismaService, '$queryRaw')
+        .mockRejectedValueOnce(new Error('Connection failed'));
+
       const result = await appController.getHealth();
-      
+
       expect(result.status).toBe('unhealthy');
       expect(result.services.database).toBe('disconnected');
       expect(result.error).toBe('Connection failed');

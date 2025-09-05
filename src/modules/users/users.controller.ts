@@ -13,7 +13,12 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiResponse } from '../../common/responses/api-response';
-import { CreateUserDto, UpdateUserDto, UpdatePreferencesDto, UserResponseDto } from './dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UpdatePreferencesDto,
+  UserResponseDto,
+} from './dto';
 
 @Controller('users')
 @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -33,13 +38,10 @@ export class UsersController {
   }
 
   @Get()
-  async getAllUsers(
-    @Query('page') page = '1',
-    @Query('limit') limit = '50'
-  ) {
+  async getAllUsers(@Query('page') page = '1', @Query('limit') limit = '50') {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
-    
+
     const result = await this.usersService.findAllUsers(pageNum, limitNum);
     return ApiResponse.success(result, 'Users retrieved successfully');
   }
@@ -47,7 +49,7 @@ export class UsersController {
   @Put(':id')
   async updateUser(
     @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto
+    @Body() updateUserDto: UpdateUserDto,
   ) {
     const user = await this.usersService.updateUser(id, updateUserDto);
     return ApiResponse.success(user, 'User updated successfully');
@@ -56,7 +58,7 @@ export class UsersController {
   @Patch(':id/preferences')
   async updateUserPreferences(
     @Param('id') id: string,
-    @Body() preferencesDto: UpdatePreferencesDto
+    @Body() preferencesDto: UpdatePreferencesDto,
   ) {
     const user = await this.usersService.updatePreferences(id, preferencesDto);
     return ApiResponse.success(user, 'User preferences updated successfully');
@@ -71,7 +73,10 @@ export class UsersController {
   @Get(':id/sessions')
   async getUserWithSessions(@Param('id') id: string) {
     const user = await this.usersService.findUserWithSessions(id);
-    return ApiResponse.success(user, 'User with sessions retrieved successfully');
+    return ApiResponse.success(
+      user,
+      'User with sessions retrieved successfully',
+    );
   }
 
   @Get('email/:email')

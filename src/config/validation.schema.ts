@@ -1,4 +1,10 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsIn,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class EnvironmentVariables {

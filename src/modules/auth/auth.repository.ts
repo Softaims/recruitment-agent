@@ -33,7 +33,9 @@ export class AuthRepository {
     });
   }
 
-  async findUserWithSessions(id: string): Promise<User & { sessions: any[] } | null> {
+  async findUserWithSessions(
+    id: string,
+  ): Promise<(User & { sessions: any[] }) | null> {
     return this.prisma.user.findUnique({
       where: { id },
       include: {

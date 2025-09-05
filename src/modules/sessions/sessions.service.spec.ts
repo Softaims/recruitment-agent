@@ -94,7 +94,7 @@ describe('SessionsService', () => {
         expect.objectContaining({
           user: { connect: { id: 'user-1' } },
           status: SessionStatus.ACTIVE,
-        })
+        }),
       );
       expect(redisService.set).toHaveBeenCalled();
       expect(result).toEqual(mockSession);
@@ -110,10 +110,9 @@ describe('SessionsService', () => {
 
       await service.createSession('user-1');
 
-      expect(sessionRepository.update).toHaveBeenCalledWith(
-        mockSession.id,
-        { status: SessionStatus.EXPIRED }
-      );
+      expect(sessionRepository.update).toHaveBeenCalledWith(mockSession.id, {
+        status: SessionStatus.EXPIRED,
+      });
     });
   });
 
@@ -134,7 +133,7 @@ describe('SessionsService', () => {
         ...mockSession,
         expiresAt: new Date(Date.now() - 1000), // 1 second ago
       };
-      
+
       redisService.get.mockResolvedValue(null);
       sessionRepository.findById.mockResolvedValue(expiredSession);
       sessionRepository.update.mockResolvedValue(expiredSession);
@@ -142,10 +141,9 @@ describe('SessionsService', () => {
 
       const result = await service.getSession('session-1');
 
-      expect(sessionRepository.update).toHaveBeenCalledWith(
-        'session-1',
-        { status: SessionStatus.EXPIRED }
-      );
+      expect(sessionRepository.update).toHaveBeenCalledWith('session-1', {
+        status: SessionStatus.EXPIRED,
+      });
       expect(result).toBeNull();
     });
   });
@@ -156,13 +154,15 @@ describe('SessionsService', () => {
         ...mockSession,
         lastActivity: new Date(),
       };
-      
+
       sessionRepository.updateLastActivity.mockResolvedValue(updatedSession);
       redisService.set.mockResolvedValue();
 
       const result = await service.updateSessionActivity('session-1');
 
-      expect(sessionRepository.updateLastActivity).toHaveBeenCalledWith('session-1');
+      expect(sessionRepository.updateLastActivity).toHaveBeenCalledWith(
+        'session-1',
+      );
       expect(redisService.set).toHaveBeenCalled();
       expect(result).toEqual(updatedSession);
     });

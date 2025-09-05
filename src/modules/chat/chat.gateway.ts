@@ -9,13 +9,17 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable, Logger, UseGuards } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { MessageRole } from '@prisma/client';
 import { ChatService } from './chat.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { ChatMessageDto, SendMessageDto } from './dto/chat-message.dto';
-import { ChatConnectionData, WebSocketMessage, TypingIndicator } from './types/chat.types';
+import {
+  ChatConnectionData,
+  WebSocketMessage,
+  TypingIndicator,
+} from './types/chat.types';
 
 @Injectable()
 @WebSocketGateway({
@@ -38,9 +42,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly jwtService: JwtService,
   ) {}
 
-  async handleConnection(client: Socket): Promise<void> {
+  handleConnection(client: Socket): void {
     try {
-      const user = await this.authenticateConnection(client);
+      const user = this.authenticateConnection(client);
       if (!user) {
         client.disconnect();
         return;
@@ -52,16 +56,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       };
 
       this.connections.set(client.id, connectionData);
-      
+
       this.logger.log(`Client ${client.id} connected for user ${user.id}`);
-      
+
       // Send connection confirmation
       client.emit('connected', {
         type: 'system',
         data: { message: 'Connected to chat server', userId: user.id },
         timestamp: new Date(),
       });
-
     } catch (error) {
       this.logger.error(`Connection failed for client ${client.id}:`, error);
       client.disconnect();
@@ -70,26 +73,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleDisconnect(client: Socket): Promise<void> {
     const connectionData = this.connections.get(client.id);
-    
+
     if (connectionData) {
       // Update session activity if user was in a session
       if (connectionData.sessionId) {
         try {
-          await this.sessionsService.updateSessionActivity(connectionData.sessionId);
-          
+          await this.sessionsService.updateSessionActivity(
+            connectionData.sessionId,
+          );
+
           // Notify other clients in the session that user disconnected
-          client.to(`session:${connectionData.sessionId}`).emit('user_disconnected', {
-            type: 'system',
-            data: { userId: connectionData.userId },
-            timestamp: new Date(),
-          });
+          client
+            .to(`session:${connectionData.sessionId}`)
+            .emit('user_disconnected', {
+              type: 'system',
+              data: { userId: connectionData.userId },
+              timestamp: new Date(),
+            });
         } catch (error) {
-          this.logger.warn(`Failed to update session activity on disconnect:`, error);
+          this.logger.warn(
+            `Failed to update session activity on disconnect:`,
+            error,
+          );
         }
       }
 
       this.connections.delete(client.id);
-      this.logger.log(`Client ${client.id} disconnected for user ${connectionData.userId}`);
+      this.logger.log(
+        `Client ${client.id} disconnected for user ${connectionData.userId}`,
+      );
     }
   }
 
@@ -116,11 +128,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // Leave previous session room if any
       if (connectionData.sessionId) {
-        client.leave(`session:${connectionData.sessionId}`);
+        void client.leave(`session:${connectionData.sessionId}`);
       }
 
       // Join new session room
-      client.join(`session:${data.sessionId}`);
+      void client.join(`session:${data.sessionId}`);
       connectionData.sessionId = data.sessionId;
       this.connections.set(client.id, connectionData);
 
@@ -130,13 +142,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.logger.log(`Client ${client.id} joined session ${data.sessionId}`);
 
       // Send confirmation and recent messages
-      const recentMessages = await this.chatService.getRecentMessages(data.sessionId, 10);
-      
+      const recentMessages = await this.chatService.getRecentMessages(
+        data.sessionId,
+        10,
+      );
+
       client.emit('session_joined', {
         type: 'system',
-        data: { 
+        data: {
           sessionId: data.sessionId,
-          recentMessages: recentMessages.map(msg => ({
+          recentMessages: recentMessages.map((msg) => ({
             id: msg.id,
             role: msg.role,
             content: msg.content,
@@ -153,12 +168,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data: { userId: connectionData.userId },
         timestamp: new Date(),
       });
-
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to join session:`, error);
+      const message =
+        error instanceof Error ? error.message : 'Failed to join session';
       client.emit('error', {
         type: 'error',
-        data: { message: error.message || 'Failed to join session' },
+        data: { message },
         timestamp: new Date(),
       });
     }
@@ -173,10 +189,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       const sessionId = connectionData.sessionId;
-      
+
       // Leave session room
-      client.leave(`session:${sessionId}`);
-      
+      void client.leave(`session:${sessionId}`);
+
       // Update session activity
       await this.sessionsService.updateSessionActivity(sessionId);
 
@@ -198,8 +214,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data: { sessionId },
         timestamp: new Date(),
       });
-
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(`Failed to leave session:`, error);
       client.emit('error', {
         type: 'error',
@@ -242,29 +257,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       };
 
       // Broadcast to all clients in the session
-      this.server.to(`session:${connectionData.sessionId}`).emit('message_received', {
-        type: 'message',
-        data: messageResponse,
-        timestamp: new Date(),
-      });
+      this.server
+        .to(`session:${connectionData.sessionId}`)
+        .emit('message_received', {
+          type: 'message',
+          data: messageResponse,
+          timestamp: new Date(),
+        });
 
-      this.logger.log(`Message ${message.id} sent in session ${connectionData.sessionId}`);
-
-    } catch (error) {
+      this.logger.log(
+        `Message ${message.id} sent in session ${connectionData.sessionId}`,
+      );
+    } catch (error: unknown) {
       this.logger.error(`Failed to send message:`, error);
+      const message =
+        error instanceof Error ? error.message : 'Failed to send message';
       client.emit('error', {
         type: 'error',
-        data: { message: error.message || 'Failed to send message' },
+        data: { message },
         timestamp: new Date(),
       });
     }
   }
 
   @SubscribeMessage('typing')
-  async handleTyping(
+  handleTyping(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { isTyping: boolean },
-  ): Promise<void> {
+  ): void {
     try {
       const connectionData = this.connections.get(client.id);
       if (!connectionData || !connectionData.sessionId) {
@@ -278,12 +298,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       };
 
       // Broadcast typing indicator to other clients in session (not sender)
-      client.to(`session:${connectionData.sessionId}`).emit('typing_indicator', {
-        type: 'typing',
-        data: typingData,
-        timestamp: new Date(),
-      });
-
+      void client
+        .to(`session:${connectionData.sessionId}`)
+        .emit('typing_indicator', {
+          type: 'typing',
+          data: typingData,
+          timestamp: new Date(),
+        });
     } catch (error) {
       this.logger.error(`Failed to handle typing indicator:`, error);
     }
@@ -302,8 +323,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      const session = await this.sessionsService.getSession(connectionData.sessionId);
-      const messageCount = await this.chatService.getMessageCount(connectionData.sessionId);
+      const session = await this.sessionsService.getSession(
+        connectionData.sessionId,
+      );
+      const messageCount = await this.chatService.getMessageCount(
+        connectionData.sessionId,
+      );
 
       client.emit('session_info', {
         type: 'system',
@@ -320,7 +345,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         },
         timestamp: new Date(),
       });
-
     } catch (error) {
       this.logger.error(`Failed to get session info:`, error);
       client.emit('error', {
@@ -333,7 +357,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Private helper methods
 
-  private async authenticateConnection(client: Socket): Promise<{ id: string; email: string } | null> {
+  private authenticateConnection(
+    client: Socket,
+  ): { id: string; email: string } | null {
     try {
       // Extract JWT from cookie or authorization header
       const token = this.extractTokenFromClient(client);
@@ -343,28 +369,36 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       // Verify JWT token
-      const payload = this.jwtService.verify(token);
-      if (!payload || !payload.sub) {
+      const payload = this.jwtService.verify<{ sub: string; email?: string }>(
+        token,
+      );
+      if (!payload?.sub) {
         this.logger.warn(`Invalid token for client ${client.id}`);
         return null;
       }
 
       return {
         id: payload.sub,
-        email: payload.email,
+        email: payload.email ?? '',
       };
-
-    } catch (error) {
-      this.logger.error(`Authentication failed for client ${client.id}:`, error);
+    } catch (error: unknown) {
+      this.logger.error(
+        `Authentication failed for client ${client.id}:`,
+        error,
+      );
       return null;
     }
   }
 
   private extractTokenFromClient(client: Socket): string | null {
     // Try to get token from handshake auth
-    const authHeader = client.handshake.auth?.token || client.handshake.headers?.authorization;
+    const raw = (client.handshake.auth?.token ??
+      client.handshake.headers?.authorization) as unknown;
+    const authHeader = typeof raw === 'string' ? raw : undefined;
     if (authHeader) {
-      return authHeader.replace('Bearer ', '');
+      return authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : authHeader;
     }
 
     // Try to get token from cookies
@@ -372,8 +406,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (cookies) {
       const jwtCookie = cookies
         .split(';')
-        .find(cookie => cookie.trim().startsWith('jwt='));
-      
+        .find((cookie) => cookie.trim().startsWith('jwt='));
+
       if (jwtCookie) {
         return jwtCookie.split('=')[1];
       }
@@ -384,18 +418,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Public methods for external use
 
-  public async broadcastToSession(sessionId: string, message: WebSocketMessage): Promise<void> {
-    this.server.to(`session:${sessionId}`).emit('broadcast', message);
+  public broadcastToSession(
+    sessionId: string,
+    message: WebSocketMessage,
+  ): void {
+    void this.server.to(`session:${sessionId}`).emit('broadcast', message);
   }
 
-  public async sendToUser(userId: string, message: WebSocketMessage): Promise<void> {
+  public sendToUser(userId: string, message: WebSocketMessage): void {
     // Find all connections for the user
     const userConnections = Array.from(this.connections.entries())
-      .filter(([_, data]) => data.userId === userId)
+      .filter(([, data]) => data.userId === userId)
       .map(([socketId]) => socketId);
 
-    userConnections.forEach(socketId => {
-      this.server.to(socketId).emit('direct_message', message);
+    userConnections.forEach((socketId) => {
+      void this.server.to(socketId).emit('direct_message', message);
     });
   }
 
@@ -404,7 +441,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   public getSessionConnections(sessionId: string): number {
-    return Array.from(this.connections.values())
-      .filter(data => data.sessionId === sessionId).length;
+    return Array.from(this.connections.values()).filter(
+      (data) => data.sessionId === sessionId,
+    ).length;
   }
 }

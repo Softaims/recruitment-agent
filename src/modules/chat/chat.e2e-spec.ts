@@ -167,10 +167,10 @@ describe('Chat Module (E2E)', () => {
 
       clientSocket.on('session_joined', () => {
         sessionJoined = true;
-        
+
         // Send typing indicator
         clientSocket.emit('typing', { isTyping: true });
-        
+
         // Since we only have one client, we won't receive our own typing indicator
         // In a real scenario with multiple clients, others would receive it
         setTimeout(() => {
@@ -250,9 +250,9 @@ describe('Chat Module (E2E)', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeInstanceOf(Array);
       expect(response.body.data.length).toBeGreaterThan(0);
-      
+
       const message = response.body.data.find(
-        (msg: any) => msg.content === 'Test message for retrieval'
+        (msg: any) => msg.content === 'Test message for retrieval',
       );
       expect(message).toBeDefined();
     });
@@ -314,7 +314,9 @@ describe('Chat Module (E2E)', () => {
       });
 
       clientSocket.on('connected', () => {
-        clientSocket.emit('join_session', { sessionId: 'non-existent-session' });
+        clientSocket.emit('join_session', {
+          sessionId: 'non-existent-session',
+        });
       });
 
       clientSocket.on('error', (data) => {
@@ -398,7 +400,11 @@ describe('Chat Module (E2E)', () => {
       });
 
       function checkReadyAndSendMessage() {
-        if (client1JoinedSession && client2JoinedSession && messagesSent === 0) {
+        if (
+          client1JoinedSession &&
+          client2JoinedSession &&
+          messagesSent === 0
+        ) {
           messagesSent++;
           client1.emit('send_message', {
             content: 'Multi-client test message',
@@ -407,7 +413,8 @@ describe('Chat Module (E2E)', () => {
       }
 
       function checkComplete() {
-        if (messagesReceived === 2) { // Both clients should receive the message
+        if (messagesReceived === 2) {
+          // Both clients should receive the message
           client1.disconnect();
           client2.disconnect();
           done();

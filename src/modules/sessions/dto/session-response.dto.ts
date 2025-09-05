@@ -1,6 +1,17 @@
-import { Session, SessionStatus, User, ConversationMessage } from '@prisma/client';
+import {
+  Session,
+  SessionStatus,
+  User,
+  ConversationMessage,
+} from '@prisma/client';
 
-export class SessionResponseDto implements Pick<Session, 'id' | 'status' | 'context' | 'createdAt' | 'lastActivity' | 'expiresAt'> {
+export class SessionResponseDto
+  implements
+    Pick<
+      Session,
+      'id' | 'status' | 'context' | 'createdAt' | 'lastActivity' | 'expiresAt'
+    >
+{
   id: string;
   status: SessionStatus;
   context: any;
