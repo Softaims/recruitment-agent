@@ -43,6 +43,10 @@ export default registerAs('app', () => ({
   // Session Configuration
   session: {
     timeoutMinutes: parseInt(process.env.SESSION_TIMEOUT_MINUTES, 10) || 30,
+    defaultExpirationHours: parseInt(process.env.SESSION_DEFAULT_EXPIRATION_HOURS, 10) || 24,
+    cacheExpirationSeconds: parseInt(process.env.SESSION_CACHE_EXPIRATION_SECONDS, 10) || 3600,
+    maxActiveSessions: parseInt(process.env.SESSION_MAX_ACTIVE_SESSIONS, 10) || 10,
+    cleanupIntervalMinutes: parseInt(process.env.SESSION_CLEANUP_INTERVAL_MINUTES, 10) || 60,
     maxConversationHistory: parseInt(process.env.MAX_CONVERSATION_HISTORY, 10) || 100,
   },
 

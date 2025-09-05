@@ -1,34 +1,37 @@
 export interface ApiResponseInterface<T = any> {
   success: boolean;
-  data?: T;
-  message?: string;
+  data: T;
+  message: string;
+  timestamp: string;
   error?: {
     code: string;
-    message: string;
     details?: any;
   };
-  timestamp: string;
 }
 
-export class ApiResponse {
-  static success<T>(data: T, message = 'Success'): ApiResponseInterface<T> {
-    return {
-      success: true,
-      data,
-      message,
-      timestamp: new Date().toISOString(),
-    };
+export class ApiResponse<T = any> {
+  success: boolean;
+  data: T;
+  message: string;
+  timestamp: string;
+  error?: {
+    code: string;
+    details?: any;
+  };
+
+  constructor(success: boolean, data: T, message: string, error?: { code: string; details?: any }) {
+    this.success = success;
+    this.data = data;
+    this.message = message;
+    this.timestamp = new Date().toISOString();
+    this.error = error;
   }
 
-  static error(code: string, message: string, details?: any): ApiResponseInterface {
-    return {
-      success: false,
-      error: {
-        code,
-        message,
-        details,
-      },
-      timestamp: new Date().toISOString(),
-    };
+  static success<T>(data: T, message = 'Success'): ApiResponse<T> {
+    return new ApiResponse(true, data, message);
+  }
+
+  static error(code: string, message: string, details?: any): ApiResponse<null> {
+    return new ApiResponse(false, null, message, { code, details });
   }
 }

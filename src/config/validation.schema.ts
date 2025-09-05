@@ -68,6 +68,26 @@ export class EnvironmentVariables {
   @IsNumber()
   @Transform(({ value }) => parseInt(value, 10))
   @IsOptional()
+  SESSION_DEFAULT_EXPIRATION_HOURS: number = 24;
+
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsOptional()
+  SESSION_CACHE_EXPIRATION_SECONDS: number = 3600;
+
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsOptional()
+  SESSION_MAX_ACTIVE_SESSIONS: number = 10;
+
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsOptional()
+  SESSION_CLEANUP_INTERVAL_MINUTES: number = 60;
+
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsOptional()
   MAX_CONVERSATION_HISTORY: number = 100;
 
   // Rate Limiting Configuration
