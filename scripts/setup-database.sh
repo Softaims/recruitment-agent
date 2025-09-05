@@ -7,11 +7,20 @@ set -e
 
 echo "🚀 Setting up P0 Backend Database..."
 
+# Load environment variables from .env if present
+if [ -f ".env" ]; then
+    echo "📦 Loading environment from .env"
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+fi
+
 # Check if DATABASE_URL is set
 if [ -z "$DATABASE_URL" ]; then
-    echo "❌ DATABASE_URL environment variable is not set"
-    echo "Please set DATABASE_URL in your .env file"
-    exit 1
+        echo "❌ DATABASE_URL environment variable is not set"
+        echo "Please set DATABASE_URL in your .env file"
+        exit 1
 fi
 
 echo "📋 Checking Prisma configuration..."

@@ -40,6 +40,13 @@ export class ChatService {
     this.logger.log(
       `Created message ${message.id} in session ${payload.sessionId}`,
     );
+
+    // Fire-and-forget: create a simple assistant stub response for now (Pass 4 will stream)
+    // Do not await to keep current API behavior fast; best-effort logging
+    void this.generateAssistantStubAndMaybeSummarize(
+      payload.sessionId,
+      session.context,
+    );
     return message;
   }
 
@@ -205,5 +212,52 @@ export class ChatService {
     Assert.notNull(since, 'Since date is required');
 
     return this.conversationRepository.findMessagesSince(sessionId, since);
+  }
+
+  // Private helpers
+  private async generateAssistantStubAndMaybeSummarize(
+    sessionId: string,
+    sessionContext: Prisma.JsonValue | null,
+  ): Promise<void> {
+    try {
+      const assistantContent = "Thanks! I'm processing your request.";
+      await this.conversationRepository.create({
+        session: { connect: { id: sessionId } },
+        content: assistantContent,
+        role: MessageRole.ASSISTANT,
+        metadata: { stub: true },
+      });
+
+      // Summarize when message count crosses threshold
+      const threshold = 50;
+      const count =
+        await this.conversationRepository.countBySessionId(sessionId);
+      if (count >= threshold) {
+        // Build a lightweight summary from last 10 messages in chronological order
+        const last10 = await this.conversationRepository.getConversationHistory(
+          sessionId,
+          10,
+        );
+        const summary = last10
+          .map((m) => `${m.role}: ${m.content}`)
+          .join(' \n')
+          .slice(0, 1000);
+
+        const existing =
+          sessionContext &&
+          typeof sessionContext === 'object' &&
+          !Array.isArray(sessionContext)
+            ? (sessionContext as Record<string, any>)
+            : {};
+        const newContext = { ...existing, conversationSummary: summary };
+        await this.sessionsService.updateSessionContext(sessionId, newContext);
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Assistant stub/summarize failed for session ${sessionId}: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
   }
 }

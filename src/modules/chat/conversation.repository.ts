@@ -18,6 +18,10 @@ export interface PaginatedResult<T> {
   hasPrev: boolean;
 }
 
+export interface ConversationSummaryResult {
+  summary: string | null;
+}
+
 @Injectable()
 export class ConversationRepository {
   private readonly logger = new Logger(ConversationRepository.name);
@@ -158,5 +162,23 @@ export class ConversationRepository {
       data: messages,
     });
     return result.count;
+  }
+
+  async getLatestSummary(
+    sessionId: string,
+  ): Promise<ConversationSummaryResult> {
+    // Summary is currently stored in Session.context.conversationSummary (seed default)
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { context: true },
+    });
+
+    const context = (session?.context ?? {}) as Record<string, any>;
+    const summary =
+      typeof context.conversationSummary === 'string'
+        ? context.conversationSummary
+        : null;
+
+    return { summary };
   }
 }

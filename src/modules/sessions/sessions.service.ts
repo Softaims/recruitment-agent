@@ -40,6 +40,7 @@ export class SessionsService {
         'app.session.cleanupIntervalMinutes',
         60,
       ),
+      timeoutMinutes: this.configService.get('app.session.timeoutMinutes', 30),
     };
   }
 
@@ -97,9 +98,24 @@ export class SessionsService {
       return null;
     }
 
+    // Optionally refresh sliding expiration on access
+    if (session.status === SessionStatus.ACTIVE) {
+      const newExpiresAt = this.calculateInactivityExpiry();
+      if (newExpiresAt > session.expiresAt) {
+        const refreshed = await this.sessionRepository.update(sessionId, {
+          expiresAt: newExpiresAt,
+        });
+        await this.cacheSession(refreshed);
+      } else {
+        await this.cacheSession(session);
+      }
+      return (await this.sessionRepository.findById(
+        sessionId,
+      )) as SessionWithUser;
+    }
+
     // Cache for future requests
     await this.cacheSession(session);
-
     return session as SessionWithUser;
   }
 
@@ -180,7 +196,12 @@ export class SessionsService {
   async updateSessionActivity(sessionId: string): Promise<Session> {
     Assert.notNull(sessionId, 'Session ID is required');
 
-    const session = await this.sessionRepository.updateLastActivity(sessionId);
+    const now = new Date();
+    const newExpiresAt = this.calculateInactivityExpiry(now);
+    const session = await this.sessionRepository.update(sessionId, {
+      lastActivity: now,
+      expiresAt: newExpiresAt,
+    });
 
     // Update cache with new activity time
     await this.cacheSession(session);
@@ -212,6 +233,7 @@ export class SessionsService {
 
     await this.sessionRepository.update(sessionId, {
       status: SessionStatus.EXPIRED,
+      expiresAt: new Date(),
     });
 
     // Remove from cache
@@ -271,8 +293,16 @@ export class SessionsService {
     return expiration;
   }
 
+  private calculateInactivityExpiry(fromDate: Date = new Date()): Date {
+    const expiration = new Date(fromDate);
+    expiration.setMinutes(expiration.getMinutes() + this.config.timeoutMinutes);
+    return expiration;
+  }
+
   private isSessionExpired(session: Session): boolean {
-    return new Date() > session.expiresAt;
+    return (
+      session.status === SessionStatus.EXPIRED || new Date() > session.expiresAt
+    );
   }
 
   private getCacheKey(sessionId: string): string {

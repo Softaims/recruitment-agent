@@ -5,6 +5,7 @@ import {
   ConversationRepository,
   ListMessagesOptions,
   PaginatedResult,
+  ConversationSummaryResult,
 } from './conversation.repository';
 
 export interface AppendMessageParams {
@@ -70,5 +71,12 @@ export class ConversationService {
   ): Promise<PaginatedResult<ConversationMessage>> {
     Assert.notNull(sessionId, 'Session ID is required');
     return this.repo.listBySession(sessionId, options);
+  }
+
+  async getLatestSummary(
+    sessionId: string,
+  ): Promise<ConversationSummaryResult> {
+    Assert.notNull(sessionId, 'Session ID is required');
+    return this.repo.getLatestSummary(sessionId);
   }
 }

@@ -388,7 +388,7 @@ describe('AuthController (Integration)', () => {
       const loginResponse = await request(app.getHttpServer())
         .post('/auth/login')
         .send({
-          email: 'flowtest@example.com',
+          email: uniqueEmail,
           password: 'password123',
         })
         .expect(200);
@@ -401,11 +401,11 @@ describe('AuthController (Integration)', () => {
         .set('Cookie', loginCookies)
         .expect(200);
 
-      expect(profileResponse2.body.data.email).toBe('flowtest@example.com');
+      expect(profileResponse2.body.data.email).toBe(uniqueEmail);
 
       // Cleanup
       await prismaService.user.delete({
-        where: { email: 'flowtest@example.com' },
+        where: { email: uniqueEmail },
       });
     });
   });

@@ -110,9 +110,13 @@ describe('SessionsService', () => {
 
       await service.createSession('user-1');
 
-      expect(sessionRepository.update).toHaveBeenCalledWith(mockSession.id, {
-        status: SessionStatus.EXPIRED,
-      });
+      expect(sessionRepository.update).toHaveBeenCalledWith(
+        mockSession.id,
+        expect.objectContaining({
+          status: SessionStatus.EXPIRED,
+          expiresAt: expect.any(Date),
+        }),
+      );
     });
   });
 
@@ -141,30 +145,39 @@ describe('SessionsService', () => {
 
       const result = await service.getSession('session-1');
 
-      expect(sessionRepository.update).toHaveBeenCalledWith('session-1', {
-        status: SessionStatus.EXPIRED,
-      });
+      expect(sessionRepository.update).toHaveBeenCalledWith(
+        'session-1',
+        expect.objectContaining({
+          status: SessionStatus.EXPIRED,
+          expiresAt: expect.any(Date),
+        }),
+      );
       expect(result).toBeNull();
     });
   });
 
   describe('updateSessionActivity', () => {
-    it('should update last activity and cache', async () => {
+    it('should update last activity and extends expiry in DB and cache', async () => {
       const updatedSession = {
         ...mockSession,
         lastActivity: new Date(),
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
       };
 
-      sessionRepository.updateLastActivity.mockResolvedValue(updatedSession);
+      sessionRepository.update.mockResolvedValue(updatedSession as any);
       redisService.set.mockResolvedValue();
 
       const result = await service.updateSessionActivity('session-1');
 
-      expect(sessionRepository.updateLastActivity).toHaveBeenCalledWith(
+      expect(sessionRepository.update).toHaveBeenCalledWith(
         'session-1',
+        expect.objectContaining({
+          lastActivity: expect.any(Date),
+          expiresAt: expect.any(Date),
+        }),
       );
       expect(redisService.set).toHaveBeenCalled();
-      expect(result).toEqual(updatedSession);
+      expect(result).toEqual(updatedSession as any);
     });
   });
 

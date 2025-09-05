@@ -5,6 +5,7 @@ export interface ApiResponseInterface<T = any> {
   timestamp: string;
   error?: {
     code: string;
+    message?: string;
     details?: any;
   };
 }
@@ -16,6 +17,7 @@ export class ApiResponse<T = any> {
   timestamp: string;
   error?: {
     code: string;
+    message?: string;
     details?: any;
   };
 
@@ -23,7 +25,7 @@ export class ApiResponse<T = any> {
     success: boolean,
     data: T,
     message: string,
-    error?: { code: string; details?: any },
+    error?: { code: string; message?: string; details?: any },
   ) {
     this.success = success;
     this.data = data;
@@ -41,6 +43,10 @@ export class ApiResponse<T = any> {
     message: string,
     details?: any,
   ): ApiResponse<null> {
-    return new ApiResponse(false, null, message, { code, details });
+    return new ApiResponse<null>(false, null, message, {
+      code,
+      message,
+      details,
+    });
   }
 }

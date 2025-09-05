@@ -23,4 +23,5 @@ export interface SessionConfig {
   cacheExpirationSeconds: number;
   maxActiveSessions: number;
   cleanupIntervalMinutes: number;
+  timeoutMinutes: number;
 }

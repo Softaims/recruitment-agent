@@ -8,6 +8,11 @@ describe('ChatService (Business Logic)', () => {
   let service: ChatService;
   let conversationRepository: jest.Mocked<ConversationRepository>;
   let sessionsService: jest.Mocked<SessionsService>;
+  let sessionsServiceMock: {
+    getSession: jest.Mock;
+    updateSessionActivity: jest.Mock;
+    updateSessionContext: jest.Mock;
+  };
 
   const mockUser = {
     id: 'user-1',
@@ -47,15 +52,17 @@ describe('ChatService (Business Logic)', () => {
       findBySessionId: jest.fn(),
       findRecentBySessionId: jest.fn(),
       countBySessionId: jest.fn(),
+      getConversationHistory: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
       deleteBySessionId: jest.fn(),
       findMessagesSince: jest.fn(),
     };
 
-    const mockSessionsService = {
+    sessionsServiceMock = {
       getSession: jest.fn(),
       updateSessionActivity: jest.fn(),
+      updateSessionContext: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -67,7 +74,7 @@ describe('ChatService (Business Logic)', () => {
         },
         {
           provide: SessionsService,
-          useValue: mockSessionsService,
+          useValue: sessionsServiceMock,
         },
       ],
     }).compile();
@@ -142,6 +149,85 @@ describe('ChatService (Business Logic)', () => {
       await expect(service.processMessage(payload)).rejects.toThrow(
         'Message content is required',
       );
+    });
+
+    it('should create an assistant stub response asynchronously', async () => {
+      sessionsService.getSession.mockResolvedValue(mockSession);
+      sessionsService.updateSessionActivity.mockResolvedValue(mockSession);
+
+      // First create call returns the user message
+      (conversationRepository.create as jest.Mock)
+        .mockResolvedValueOnce(mockMessage)
+        // Second create call is the assistant stub
+        .mockResolvedValueOnce({
+          ...mockMessage,
+          id: 'message-2',
+          role: MessageRole.ASSISTANT,
+        });
+
+      (conversationRepository.countBySessionId as jest.Mock).mockResolvedValue(
+        2,
+      );
+
+      const payload = {
+        sessionId: 'session-1',
+        content: 'Hello, service!',
+        role: MessageRole.USER,
+      };
+
+      const result = await service.processMessage(payload);
+      expect(result).toEqual(mockMessage);
+
+      // Allow async stub to run
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(conversationRepository.create).toHaveBeenCalledTimes(2);
+      const assistantCall = (conversationRepository.create as jest.Mock).mock
+        .calls[1][0];
+      expect(assistantCall.role).toBe(MessageRole.ASSISTANT);
+      expect(assistantCall.metadata).toEqual({ stub: true });
+    });
+
+    it('should update session context with summary when threshold reached', async () => {
+      sessionsService.getSession.mockResolvedValue(mockSession);
+      sessionsService.updateSessionActivity.mockResolvedValue(mockSession);
+
+      (conversationRepository.create as jest.Mock)
+        .mockResolvedValueOnce(mockMessage)
+        .mockResolvedValueOnce({
+          ...mockMessage,
+          id: 'message-2',
+          role: MessageRole.ASSISTANT,
+        });
+
+      (conversationRepository.countBySessionId as jest.Mock).mockResolvedValue(
+        50,
+      );
+      (
+        conversationRepository.getConversationHistory as jest.Mock
+      ).mockResolvedValue(
+        Array.from({ length: 10 }).map((_, i) => ({
+          ...mockMessage,
+          id: `m${i + 1}`,
+          role: i % 2 === 0 ? MessageRole.USER : MessageRole.ASSISTANT,
+          content: `msg-${i + 1}`,
+        })),
+      );
+
+      const payload = {
+        sessionId: 'session-1',
+        content: 'trigger summary',
+        role: MessageRole.USER,
+      };
+
+      await service.processMessage(payload);
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(sessionsServiceMock.updateSessionContext).toHaveBeenCalled();
+      const [sid, ctx] = sessionsServiceMock.updateSessionContext.mock.calls[0];
+      expect(sid).toBe('session-1');
+      expect(ctx.conversationSummary).toContain('USER:');
+      expect(ctx.conversationSummary).toContain('ASSISTANT:');
     });
   });
 

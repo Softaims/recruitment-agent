@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../app.module';
 import { PrismaService } from '../../database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MessageRole, SessionStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import cookieParser from 'cookie-parser';
 
 describe('Chat Module Integration', () => {
   let app: INestApplication;
@@ -22,6 +23,17 @@ describe('Chat Module Integration', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    // Ensure cookies are parsed for JWT extraction in guard
+    app.use(cookieParser());
+    // Enable validation similar to main.ts
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    );
     prisma = moduleFixture.get<PrismaService>(PrismaService);
     jwtService = moduleFixture.get<JwtService>(JwtService);
 
@@ -30,7 +42,7 @@ describe('Chat Module Integration', () => {
     // Create test user
     testUser = await prisma.user.create({
       data: {
-        email: 'chat-test@example.com',
+        email: `chat-int-${Date.now()}@example.com`,
         name: 'Chat Test User',
         password: await bcrypt.hash('password123', 10),
       },

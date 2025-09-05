@@ -46,7 +46,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const user = this.authenticateConnection(client);
       if (!user) {
-        client.disconnect();
+        // Explicit server-side disconnect (Socket.IO v4 reports "io server disconnect")
+        client.disconnect(true);
         return;
       }
 
@@ -67,7 +68,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     } catch (error) {
       this.logger.error(`Connection failed for client ${client.id}:`, error);
-      client.disconnect();
+      client.disconnect(true);
     }
   }
 

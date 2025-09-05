@@ -132,28 +132,47 @@ describe('ChatGateway (Integration)', () => {
         auth: {
           token: 'invalid-jwt-token',
         },
+        reconnection: false,
       });
 
-      clientSocket.on('connect', () => {
-        done(new Error('Should not connect with invalid token'));
-      });
-
-      clientSocket.on('disconnect', (reason) => {
-        expect(reason).toBe('server disconnect');
-        done();
+      // Do not assert on 'connect' because server may connect then immediately disconnect
+      let doneCalled = false;
+      clientSocket.once('disconnect', (reason) => {
+        expect(['server disconnect', 'io server disconnect']).toContain(reason);
+        if (!doneCalled) {
+          doneCalled = true;
+          try {
+            clientSocket.close();
+          } catch {
+            // intentionally ignored: socket may already be closed
+            const ignored = true;
+            void ignored;
+          }
+          done();
+        }
       });
     });
 
     it('should reject connections without tokens', (done) => {
-      clientSocket = ioClient(`http://localhost:${serverPort}/chat`);
-
-      clientSocket.on('connect', () => {
-        done(new Error('Should not connect without token'));
+      clientSocket = ioClient(`http://localhost:${serverPort}/chat`, {
+        reconnection: false,
       });
 
-      clientSocket.on('disconnect', (reason) => {
-        expect(reason).toBe('server disconnect');
-        done();
+      // Do not assert on 'connect' because server may connect then immediately disconnect
+      let doneCalled = false;
+      clientSocket.once('disconnect', (reason) => {
+        expect(['server disconnect', 'io server disconnect']).toContain(reason);
+        if (!doneCalled) {
+          doneCalled = true;
+          try {
+            clientSocket.close();
+          } catch {
+            // intentionally ignored: socket may already be closed
+            const ignored = true;
+            void ignored;
+          }
+          done();
+        }
       });
     });
   });

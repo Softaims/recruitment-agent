@@ -7,6 +7,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MessageRole, SessionStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import cookieParser from 'cookie-parser';
 
 describe('Chat Module (E2E)', () => {
   let app: INestApplication;
@@ -25,6 +26,7 @@ describe('Chat Module (E2E)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.use(cookieParser());
     prisma = moduleFixture.get<PrismaService>(PrismaService);
     jwtService = moduleFixture.get<JwtService>(JwtService);
 
@@ -35,7 +37,7 @@ describe('Chat Module (E2E)', () => {
     // Create test user
     testUser = await prisma.user.create({
       data: {
-        email: 'test@example.com',
+        email: `e2e-${Date.now()}@example.com`,
         name: 'Test User',
         password: await bcrypt.hash('password123', 10),
       },
@@ -301,7 +303,7 @@ describe('Chat Module (E2E)', () => {
       });
 
       clientSocket.on('disconnect', (reason) => {
-        expect(reason).toBe('server disconnect');
+        expect(['server disconnect', 'io server disconnect']).toContain(reason);
         done();
       });
     });
